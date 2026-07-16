@@ -1,0 +1,9 @@
+{
+  "name": "conservative-trader",
+  "perTxMaxUsd": 100,
+  "dailyMaxUsd": 500,
+  "allowlist": [],
+  "blockUnlimitedApprovals": true,
+  "blockSetApprovalForAll": true,
+  "holdThresholdPct": 75
+}
