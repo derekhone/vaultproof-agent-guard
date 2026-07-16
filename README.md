@@ -23,6 +23,21 @@ Built by [Remnant Fieldworks Inc.](https://remnantfieldworks.com) on the
 [![DOI](https://zenodo.org/badge/1302101336.svg)](https://zenodo.org/badge/latestdoi/1302101336)
 [![build-and-test](https://github.com/derekhone/vaultproof-agent-guard/actions/workflows/test.yml/badge.svg)](https://github.com/derekhone/vaultproof-agent-guard/actions/workflows/test.yml)
 
+## Try It Now (60 seconds)
+
+See real ALLOW / HOLD / DENY decisions in action:
+
+```bash
+git clone https://github.com/derekhone/vaultproof-agent-guard.git
+cd vaultproof-agent-guard
+npm ci
+npm test
+```
+
+**You'll see 12/12 tests pass** — covering spend caps, allowlists, drain-vector blocking (setApprovalForAll, unlimited approvals), parameter mutation, stale approvals, replay, and fail-closed. The captured output is committed in [BENCHMARK.md](./BENCHMARK.md) so you can compare.
+
+No API keys, no Telegram setup required for the tests. Just clone, install, run.
+
 ## Why
 
 The #1 unsolved problem for AI agents with wallets is: **how do I stop my
