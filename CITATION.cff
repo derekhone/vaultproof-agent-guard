@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you reference or build on VaultProof Agent Guard, please cite it as below."
+title: "VaultProof Agent Guard — Pre-execution wallet guard for AI agents (alpha)"
+abstract: >-
+  VaultProof Agent Guard is a non-custodial, pre-execution wallet guard for AI
+  agents. It evaluates proposed blockchain transactions (spend caps, allowlists,
+  drain vectors, parameter integrity) and returns ALLOW / HOLD / DENY before
+  anything signs. Built on the ExecutionProof gate and RF-100 governance standard.
+  This is an experimental alpha reference implementation with reproducible tests.
+  Not audited; not for production funds.
+type: software
+version: "0.2.0"
+date-released: "2026-07-15"
+license: MIT
+url: "https://github.com/derekhone/vaultproof-agent-guard"
+repository-code: "https://github.com/derekhone/vaultproof-agent-guard"
+doi: "10.5281/zenodo.21386123"
+authors:
+  - family-names: Hone
+    given-names: Derek
+    affiliation: "Remnant Fieldworks Inc."
+    email: "derek@ownerremnantfieldworks.com"
+keywords:
+  - AI agent safety
+  - pre-execution control
+  - wallet security
+  - verification before execution
+  - blockchain security
+  - drain protection
+  - spending limits
+  - agent guardrails
