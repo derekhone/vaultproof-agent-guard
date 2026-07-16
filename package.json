@@ -1,6 +1,6 @@
 {
   "name": "vaultproof-agent-guard",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Non-custodial pre-execution wallet guard for AI agents. Spend caps, allowlists, drain-vector blocking, human HOLD approval. ALLOW / HOLD / DENY before anything signs.",
   "main": "dist/guard.js",
   "types": "dist/guard.d.ts",

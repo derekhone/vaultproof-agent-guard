@@ -10,8 +10,7 @@ allowlists, drain-vector blocking, and a Telegram ping for anything unusual —
 Built by [Remnant Fieldworks Inc.](https://remnantfieldworks.com) on the
 [ExecutionProof](https://executionproof.io) gate. Verification Before Execution™.
 
-<!-- DOI badge — add after Zenodo archives v0.1.0 -->
-<!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX) -->
+[![DOI](https://zenodo.org/badge/1302101336.svg)](https://zenodo.org/badge/latestdoi/1302101336)
 
 ## Why
 
