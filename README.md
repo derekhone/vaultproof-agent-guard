@@ -1,5 +1,7 @@
 # VaultProof Agent Guard
 
+![VaultProof Agent Guard — Verification Before Execution](./assets/hero.png)
+
 > Your agent can think freely. It can't spend freely.
 
 > ⚠️ **ALPHA / EXPERIMENTAL — reference implementation.**
