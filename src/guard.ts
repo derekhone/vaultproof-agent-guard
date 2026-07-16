@@ -131,7 +131,7 @@ export class VaultProofGuard {
       }),
     });
     if (!res.ok) throw new Error(`Gate error ${res.status}`);
-    const body = await res.json();
+    const body = await res.json() as { decision: Decision; reason: string; proofrecord?: { id: string }; hold_id?: string };
     return {
       decision: body.decision,
       reason: body.reason,

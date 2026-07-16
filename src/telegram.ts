@@ -26,7 +26,7 @@ export async function askTelegram(message: string): Promise<boolean> {
       },
     }),
   });
-  const sent = await send.json();
+  const sent = await send.json() as { result: { message_id: number } };
   const messageId: number = sent.result.message_id;
 
   // 2. Poll for the button press until timeout.
@@ -35,7 +35,7 @@ export async function askTelegram(message: string): Promise<boolean> {
 
   while (Date.now() < deadline) {
     const res = await fetch(`${API}/getUpdates?offset=${offset}&timeout=1`);
-    const { result: updates } = await res.json();
+    const { result: updates } = await res.json() as { result: any[] };
 
     for (const u of updates ?? []) {
       offset = u.update_id + 1;

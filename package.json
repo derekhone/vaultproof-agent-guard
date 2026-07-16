@@ -1,0 +1,64 @@
+{
+  "name": "vaultproof-agent-guard",
+  "version": "0.1.1",
+  "description": "Non-custodial pre-execution wallet guard for AI agents. Spend caps, allowlists, drain-vector blocking, human HOLD approval. ALLOW / HOLD / DENY before anything signs.",
+  "main": "dist/guard.js",
+  "types": "dist/guard.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/guard.js",
+      "require": "./dist/guard.js",
+      "types": "./dist/guard.d.ts"
+    },
+    "./telegram": {
+      "import": "./dist/telegram.js",
+      "require": "./dist/telegram.js",
+      "types": "./dist/telegram.d.ts"
+    }
+  },
+  "files": [
+    "dist/",
+    "profiles/",
+    "examples/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build",
+    "example": "tsx examples/agentkit-transfer.ts",
+    "prepublishOnly": "npm run rebuild"
+  },
+  "keywords": [
+    "ai-agent",
+    "wallet-guard",
+    "security",
+    "custody",
+    "blockchain",
+    "spend-cap",
+    "allowlist",
+    "drain-protection",
+    "pre-execution",
+    "verification"
+  ],
+  "author": "derekhone",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derekhone/vaultproof-agent-guard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/derekhone/vaultproof-agent-guard/issues"
+  },
+  "homepage": "https://github.com/derekhone/vaultproof-agent-guard#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}
