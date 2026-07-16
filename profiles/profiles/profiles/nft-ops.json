@@ -1,0 +1,9 @@
+{
+  "name": "nft-ops",
+  "perTxMaxUsd": 250,
+  "dailyMaxUsd": 1000,
+  "allowlist": [],
+  "blockUnlimitedApprovals": true,
+  "blockSetApprovalForAll": true,
+  "holdThresholdPct": 80
+}
