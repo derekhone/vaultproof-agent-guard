@@ -2,6 +2,14 @@
 
 > Your agent can think freely. It can't spend freely.
 
+> ⚠️ **ALPHA / EXPERIMENTAL — reference implementation.**
+> This is an open-source **reference implementation** demonstrating how
+> *Verification Before Execution* can guard AI-agent wallet actions before
+> signing. It is **not** audited, **not** certified, and **not** intended for
+> production custody or use with real funds. You are responsible for
+> configuration, testing, key management, and regulatory compliance. See
+> [THREAT_MODEL.md](./THREAT_MODEL.md) and [SECURITY.md](./SECURITY.md).
+
 Non-custodial, pre-execution wallet guard for AI agents. Before your agent
 signs **anything**, the transaction hits a verification gate: spend caps,
 allowlists, drain-vector blocking, and a Telegram ping for anything unusual —
@@ -11,6 +19,7 @@ Built by [Remnant Fieldworks Inc.](https://remnantfieldworks.com) on the
 [ExecutionProof](https://executionproof.io) gate. Verification Before Execution™.
 
 [![DOI](https://zenodo.org/badge/1302101336.svg)](https://zenodo.org/badge/latestdoi/1302101336)
+[![build-and-test](https://github.com/derekhone/vaultproof-agent-guard/actions/workflows/test.yml/badge.svg)](https://github.com/derekhone/vaultproof-agent-guard/actions/workflows/test.yml)
 
 ## Why
 
@@ -189,12 +198,54 @@ ProposedTx → VaultProofGuard.verify()
   Return { decision, reason, proofRecordId, holdId? }
 ```
 
-## License
+## Verifying it works
 
-MIT — see [LICENSE](./LICENSE)
+This project ships a reproducible test suite that runs the **real guard** against
+a battery of drain-attack shapes (unlimited approval, `setApprovalForAll`,
+non-allowlisted destinations, over-cap transfers, daily-cap accumulation, HOLD
+approval/denial, and fail-closed behaviour).
+
+```bash
+npm install
+npm test        # exits non-zero if any case fails (gates CI)
+```
+
+The verbatim, captured output is in [BENCHMARK.md](./BENCHMARK.md). It is real
+tool output, not hand-written — re-run it yourself to confirm. For what the suite
+does **not** prove, read [THREAT_MODEL.md](./THREAT_MODEL.md).
+
+## Free (local) vs. hosted (Pro) — records are different
+
+This open-source package is the **free, local tier**. Be precise about what that
+means, because the two tiers produce different kinds of records:
+
+| | **Local / free (this repo)** | **Hosted / Pro (not in this repo)** |
+| --- | --- | --- |
+| Policy logic | ✅ full ALLOW/HOLD/DENY ([`src/policy.ts`](./src/policy.ts)) | same logic, server-side |
+| ProofRecord | **local id only, _unsigned_** | cryptographically signed, independently verifiable |
+| Runs offline | ✅ | ❌ (calls hosted gate) |
+| Independent audit trail | ❌ | ✅ |
+
+> The local tier's `proofRecordId` is a convenience identifier with **no
+> cryptographic signature**. Do not present local records as tamper-evident or
+> independently verifiable — signed ProofRecords are a hosted-tier capability and
+> are **not** part of this release.
+
+## License & Trademarks
+
+Code is licensed **MIT** — see [LICENSE](./LICENSE). The MIT license covers the
+source code in this repository only.
+
+It does **not** grant rights to Remnant Fieldworks Inc. trademarks, the hosted
+ExecutionProof platform/backend, the RF-100 standard, or any patents. **ExecutionProof™**,
+**VaultProof™**, **ProofRecord™**, and **Verification Before Execution™** are
+marks of Remnant Fieldworks Inc., used here to describe the project's origin and
+are not licensed for other use.
 
 ## Contributing
 
-Issues and PRs welcome. For major changes, open an issue first.
+Issues and PRs welcome. For major changes, open an issue first. Security reports
+should follow [SECURITY.md](./SECURITY.md) (please do not file public issues for
+vulnerabilities).
 
 Built by [Remnant Fieldworks Inc.](https://remnantfieldworks.com) • Powered by [ExecutionProof](https://executionproof.io)

@@ -1,6 +1,6 @@
 {
   "name": "vaultproof-agent-guard",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Non-custodial pre-execution wallet guard for AI agents. Spend caps, allowlists, drain-vector blocking, human HOLD approval. ALLOW / HOLD / DENY before anything signs.",
   "main": "dist/guard.js",
   "types": "dist/guard.d.ts",
@@ -29,6 +29,7 @@
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build",
     "example": "tsx examples/agentkit-transfer.ts",
+    "test": "tsx tests/drain-attacks.test.ts",
     "prepublishOnly": "npm run rebuild"
   },
   "keywords": [
@@ -57,8 +58,8 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
+    "@types/node": "20.19.43",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3"
   }
 }

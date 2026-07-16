@@ -3,19 +3,18 @@
 // Non-custodial: we never hold keys. Fail-closed: no verify, no sign.
 
 import crypto from "crypto";
+import {
+  Decision,
+  ProposedTx,
+  BoundaryProfile,
+  evaluatePolicy,
+} from "./policy.js";
 
 // ---------- Types ----------
+// Core decision types now live in ./policy (single source of truth) and are
+// re-exported here so existing imports from "vaultproof-agent-guard" keep working.
 
-export type Decision = "ALLOW" | "HOLD" | "DENY";
-
-export interface ProposedTx {
-  action: "token_transfer" | "token_swap" | "contract_call" | "nft_purchase" | "nft_transfer" | "approve";
-  to: string;                 // destination address or contract
-  amountUsd?: number;         // resolved USD value (0 for non-value calls)
-  chain: string;              // e.g. "base-mainnet"
-  calldata?: string;          // raw calldata for contract calls
-  meta?: Record<string, unknown>;
-}
+export type { Decision, ProposedTx, BoundaryProfile } from "./policy.js";
 
 export interface VerifyResult {
   decision: Decision;
@@ -32,22 +31,6 @@ export interface GuardConfig {
   onHold?: (tx: ProposedTx, holdId: string) => Promise<boolean>; // human approval hook (Telegram etc.)
   localOnly?: boolean;                   // true = free tier, local rules only
 }
-
-export interface BoundaryProfile {
-  name: string;
-  perTxMaxUsd: number;
-  dailyMaxUsd: number;
-  allowlist: string[];                   // lowercase addresses/contracts
-  blockUnlimitedApprovals: boolean;
-  blockSetApprovalForAll: boolean;
-  holdThresholdPct: number;              // % of perTxMax that triggers HOLD
-}
-
-// ---------- Known drain-vector signatures ----------
-
-const SIG_APPROVE = "0x095ea7b3";
-const SIG_SET_APPROVAL_FOR_ALL = "0xa22cb465";
-const UNLIMITED = "f".repeat(64);
 
 // ---------- Guard ----------
 
@@ -88,33 +71,15 @@ export class VaultProofGuard {
   }
 
   // ---------- Local policy ----------
+  // Delegates to the shared, pure evaluatePolicy() in ./policy so the SDK
+  // (free tier) and the hosted gate (Pro tier) enforce identical rules.
 
   private checkLocal(tx: ProposedTx): VerifyResult {
-    const p = this.cfg.profile;
-    const amount = tx.amountUsd ?? 0;
-    const deny = (reason: string): VerifyResult => ({ decision: "DENY", reason, proofRecordId: this.prId() });
-    const hold = (reason: string): VerifyResult => ({ decision: "HOLD", reason, proofRecordId: this.prId(), holdId: this.prId() });
-
-    // Drain vectors first.
-    if (tx.calldata) {
-      const sig = tx.calldata.slice(0, 10).toLowerCase();
-      if (p.blockSetApprovalForAll && sig === SIG_SET_APPROVAL_FOR_ALL && !this.allowed(tx.to))
-        return deny("setApprovalForAll to non-allowlisted address (drain vector)");
-      if (p.blockUnlimitedApprovals && sig === SIG_APPROVE && tx.calldata.toLowerCase().includes(UNLIMITED))
-        return deny("Unlimited token approval (drain vector)");
-    }
-
-    if (!this.allowed(tx.to)) return deny(`Destination ${tx.to} not on allowlist`);
-    if (amount > p.perTxMaxUsd) return deny(`$${amount} exceeds per-tx cap $${p.perTxMaxUsd}`);
-    if (this.spentTodayUsd + amount > p.dailyMaxUsd) return deny(`Daily cap $${p.dailyMaxUsd} would be exceeded`);
-    if (amount >= p.perTxMaxUsd * (p.holdThresholdPct / 100))
-      return hold(`$${amount} ≥ ${p.holdThresholdPct}% of per-tx cap — human review`);
-
-    return { decision: "ALLOW", reason: "All local checks passed", proofRecordId: this.prId() };
-  }
-
-  private allowed(addr: string): boolean {
-    return this.cfg.profile.allowlist.includes(addr.toLowerCase());
+    const verdict = evaluatePolicy(tx, this.cfg.profile, this.spentTodayUsd);
+    const proofRecordId = this.prId();
+    return verdict.decision === "HOLD"
+      ? { ...verdict, proofRecordId, holdId: this.prId() }
+      : { ...verdict, proofRecordId };
   }
 
   // ---------- Hosted gate ----------
