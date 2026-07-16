@@ -31,12 +31,15 @@ See real ALLOW / HOLD / DENY decisions in action:
 git clone https://github.com/derekhone/vaultproof-agent-guard.git
 cd vaultproof-agent-guard
 npm ci
-npm test
+npm test        # 12/12 reproducible tests
+npx tsx demo.ts # interactive 5-scenario demo (optional)
 ```
 
 **You'll see 12/12 tests pass** — covering spend caps, allowlists, drain-vector blocking (setApprovalForAll, unlimited approvals), parameter mutation, stale approvals, replay, and fail-closed. The captured output is committed in [BENCHMARK.md](./BENCHMARK.md) so you can compare.
 
-No API keys, no Telegram setup required for the tests. Just clone, install, run.
+The optional `demo.ts` walks through 5 scenarios (ALLOW, HOLD → denied, 3 types of DENY) with visual output showing exactly why each decision was made.
+
+No API keys, no Telegram setup required. Just clone, install, run.
 
 ## Why
 
