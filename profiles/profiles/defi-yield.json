@@ -1,0 +1,9 @@
+{
+  "name": "defi-yield",
+  "perTxMaxUsd": 5000,
+  "dailyMaxUsd": 15000,
+  "allowlist": [],
+  "blockUnlimitedApprovals": true,
+  "blockSetApprovalForAll": true,
+  "holdThresholdPct": 50
+}
