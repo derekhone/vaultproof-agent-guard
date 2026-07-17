@@ -39,3 +39,15 @@ temp/
 
 # Patch artifacts
 *.patch
+
+# Operator signing keys — never commit private keys
+*.key
+*.key.pub
+
+# Generated ledgers (operators keep their own)
+*.jsonl
+
+# Auto-generated doc renders / platform artifacts
+*.pdf
+*.docx
+.abacus.donotdelete
