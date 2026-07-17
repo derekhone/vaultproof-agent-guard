@@ -234,22 +234,60 @@ The verbatim, captured output is in [BENCHMARK.md](./BENCHMARK.md). It is real
 tool output, not hand-written — re-run it yourself to confirm. For what the suite
 does **not** prove, read [THREAT_MODEL.md](./THREAT_MODEL.md).
 
-## Free (local) vs. hosted (Pro) — records are different
+## Verifiable ProofRecords — the part nobody else ships
 
-This open-source package is the **free, local tier**. Be precise about what that
-means, because the two tiers produce different kinds of records:
+A spend-limit library only *you* can inspect is a log. A gate whose every
+decision produces a **signed, hash-chained attestation that a hostile
+counterparty can verify against you** is *evidence*. That is what VaultProof
+emits — grounded in the preregistered ExecutionProof research corpus (DOI
+[10.5281/zenodo.21398675](https://doi.org/10.5281/zenodo.21398675)), including
+the published tamper-detection experiments ARK-455 / ARK-455b.
 
-| | **Local / free (this repo)** | **Hosted / Pro (not in this repo)** |
+Turn it on by passing an operator-held key. Records are ed25519-signed, chained,
+and verifiable by **anyone holding your public key — with zero trust in Remnant
+Fieldworks**:
+
+```ts
+import { VaultProofGuard } from "vaultproof-agent-guard";
+import { loadOrCreateSigner } from "vaultproof-agent-guard/keys";
+
+const signer = loadOrCreateSigner("./operator.key"); // your key, your machine
+const guard = new VaultProofGuard({
+  agentId: "trading-agent-01",
+  profile,
+  localOnly: true,
+  signer,                              // ← verifiable ProofRecords ON
+  ledgerFile: "./proof-ledger.jsonl",  // ← append-only chain on disk
+});
+```
+
+Then anyone can independently verify the whole chain — no account, no network:
+
+```bash
+npx vaultproof-verify ./proof-ledger.jsonl ./operator.key.pub
+# exit 0 = chain intact & every signature valid
+# exit 1 = TAMPER DETECTED (altered field, deleted/reordered record, or forgery)
+```
+
+Full format spec and trust model: **[PROOFRECORD.md](./PROOFRECORD.md)**.
+Reproduce the tamper-evidence suite: `npm run test:proof` (13/13).
+
+### Free (local) vs. hosted (Pro)
+
+Both tiers produce the **same signed, verifiable record format**. The difference
+is the *trust anchor*, not the capability:
+
+| | **Local / operator-signed (this repo)** | **Hosted / RF-anchored (Pro)** |
 | --- | --- | --- |
 | Policy logic | ✅ full ALLOW/HOLD/DENY ([`src/policy.ts`](./src/policy.ts)) | same logic, server-side |
-| ProofRecord | **local id only, _unsigned_** | cryptographically signed, independently verifiable |
+| ProofRecord | ✅ **ed25519-signed, hash-chained, independently verifiable** | additionally counter-signed + timestamped by RF |
+| Trust anchor | **your** published public key | RF's public, cross-org-verifiable anchor + transparency log |
 | Runs offline | ✅ | ❌ (calls hosted gate) |
-| Independent audit trail | ❌ | ✅ |
 
-> The local tier's `proofRecordId` is a convenience identifier with **no
-> cryptographic signature**. Do not present local records as tamper-evident or
-> independently verifiable — signed ProofRecords are a hosted-tier capability and
-> are **not** part of this release.
+> The local tier signs with **your** key, so a third party verifies by trusting
+> *you*. The hosted tier adds an **independent RF anchor** so a counterparty who
+> does *not* trust you can still rely on the record. Signing itself is no longer
+> a paywalled feature — the anchor is.
 
 ## License & Trademarks
 

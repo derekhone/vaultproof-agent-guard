@@ -46,10 +46,18 @@ These are **real gaps**. Do not assume protection where it is not claimed.
    agent can sign without calling `verify()`, the guard provides no protection.
 7. **HOLD channel trust.** The Telegram HOLD path trusts the configured chat/bot.
    Compromise of that channel compromises the approval step.
-8. **Local (free) records are unsigned.** In `localOnly` mode the ProofRecord id
-   is a local identifier with **no cryptographic signature** and no independent
-   verifiability. Cryptographically signed, independently verifiable ProofRecords
-   are a **hosted-tier** concept and are **not** part of this open-source release.
+8. **Signed ProofRecords prove integrity relative to the operator's key — not
+   who the operator is.** When a `signer` is configured, every terminal decision is
+   written to an append-only, hash-chained ledger and signed with an ed25519 operator
+   key. The bundled offline verifier (`vaultproof-verify`) detects any edit, deletion,
+   reorder, or forgery **without trusting RF servers**. What signing does **not** do:
+   it does not attest *whose* key signed. Anyone can generate a keypair, so a
+   self-signed local ledger proves "these records were produced by the holder of this
+   key and have not been altered" — it does not prove the holder is a particular
+   company. Binding a key to a real-world identity (independent trust anchor +
+   transparency log, so a counterparty need not trust the operator's own say-so) is
+   the **hosted-tier** value-add. The cryptography is identical in both tiers; only
+   the trust anchor differs. See `PROOFRECORD.md`.
 9. **No replay/nonce protection at the chain layer.** The guard issues a fresh
    record id per `verify()` call; it does not manage on-chain nonces or prevent a
    signed transaction from being broadcast more than once.

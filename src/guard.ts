@@ -8,7 +8,11 @@ import {
   ProposedTx,
   BoundaryProfile,
   evaluatePolicy,
+  POLICY_VERSION,
 } from "./policy.js";
+import type { Signer } from "./keys.js";
+import type { ProofRecord } from "./proofrecord.js";
+import { ProofLedger } from "./ledger.js";
 
 // ---------- Types ----------
 // Core decision types now live in ./policy (single source of truth) and are
@@ -21,6 +25,7 @@ export interface VerifyResult {
   reason: string;
   proofRecordId: string;
   holdId?: string;            // present when decision === "HOLD"
+  proofRecord?: ProofRecord;  // present when a signer is configured (verifiable)
 }
 
 export interface GuardConfig {
@@ -30,6 +35,14 @@ export interface GuardConfig {
   agentId: string;
   onHold?: (tx: ProposedTx, holdId: string) => Promise<boolean>; // human approval hook (Telegram etc.)
   localOnly?: boolean;                   // true = free tier, local rules only
+
+  // ----- Verifiable ProofRecords (operator-sovereign, optional) -----
+  // Provide an operator-held signer to emit ed25519-signed, hash-chained
+  // ProofRecords for every decision. Records are verifiable by anyone holding
+  // the PUBLIC key, with no trust in Remnant Fieldworks. See PROOFRECORD.md.
+  signer?: Signer;                       // operator key (see src/keys.ts)
+  ledgerFile?: string;                   // optional JSONL path to persist the chain
+  policyVersion?: string;                // override policy version tag in records
 }
 
 // ---------- Guard ----------
@@ -37,8 +50,27 @@ export interface GuardConfig {
 export class VaultProofGuard {
   private spentTodayUsd = 0;
   private dayStamp = new Date().toDateString();
+  private ledger?: ProofLedger;
 
-  constructor(private cfg: GuardConfig) {}
+  constructor(private cfg: GuardConfig) {
+    if (cfg.signer) {
+      this.ledger = new ProofLedger(cfg.signer, {
+        filePath: cfg.ledgerFile,
+        agentId: cfg.agentId,
+        policyVersion: cfg.policyVersion ?? POLICY_VERSION,
+      });
+    }
+  }
+
+  /** PEM public key that verifies this guard's ProofLedger (if signing). */
+  get proofPublicKeyPem(): string | undefined {
+    return this.ledger?.publicKeyPem;
+  }
+
+  /** The signed, hash-chained records emitted so far (if signing). */
+  get proofRecords(): readonly ProofRecord[] {
+    return this.ledger ? this.ledger.records : [];
+  }
 
   /** Call this before signing ANY transaction. */
   async verify(tx: ProposedTx): Promise<VerifyResult> {
@@ -117,6 +149,17 @@ export class VaultProofGuard {
   }
 
   private record(tx: ProposedTx, r: VerifyResult): VerifyResult {
+    // When an operator signer is configured, emit a signed, hash-chained
+    // ProofRecord for the TERMINAL decision and make its id authoritative.
+    if (this.ledger) {
+      const rec = this.ledger.append({
+        profile: this.cfg.profile.name,
+        decision: r.decision,
+        reason: r.reason,
+        tx,
+      });
+      r = { ...r, proofRecordId: rec.id, proofRecord: rec };
+    }
     console.log(`[VaultProof] ${r.decision} | ${tx.action} → ${tx.to} | $${tx.amountUsd ?? 0} | ${r.reason} | ${r.proofRecordId}`);
     return r;
   }
