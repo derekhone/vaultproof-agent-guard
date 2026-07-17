@@ -36,3 +36,6 @@ coverage/
 .cache/
 tmp/
 temp/
+
+# Patch artifacts
+*.patch
