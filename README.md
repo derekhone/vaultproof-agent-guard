@@ -1,3 +1,9 @@
+> **Repository Role:** Production Software — VaultProof Agent Guard (Open Source, Live) · Part of the [Remnant Fieldworks](https://remnantfieldworks.com) research and product ecosystem
+
+**Where this fits:** [ExecutionProof](https://executionproof.io) is an independent pre-execution governance layer for consequential AI actions — returning ALLOW / HOLD / DENY before Stripe or any downstream system is ever called. Payment authorization is the first production deployment boundary; the same architecture governs infrastructure commands, data release, access changes, and other irreversible actions. This repository is VaultProof Agent Guard, the free and open-source guard you can install today to enforce verification before an agent executes a consequential action.
+
+---
+
 # VaultProof Agent Guard
 
 ![VaultProof Agent Guard — Verification Before Execution](./assets/hero.png)
