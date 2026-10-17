@@ -4,12 +4,16 @@
  * 
  * Run: npm ci && npx tsx demo.ts
  * 
- * Shows 5 realistic scenarios: ALLOW, HOLD, DENY (3 types), with clear explanations.
+ * Shows 6 scenarios: ALLOW, HOLD, DENY (3 types), plus a signed, independently
+ * verifiable ProofRecord ledger with live tamper detection.
  * No API keys or Telegram setup required — pure local evaluation.
  */
 
 import { VaultProofGuard } from "./src/guard.js";
 import type { ProposedTx } from "./src/guard.js";
+import { generateSigner } from "./src/keys.js";
+import { verifyLedgerWithPublicKey } from "./src/verify-ledger.js";
+import { coreOf } from "./src/proofrecord.js";
 
 async function main() {
   // Use the conservative profile (low caps, strict allowlist)
@@ -105,9 +109,48 @@ async function main() {
   console.log(`❌ Decision: ${r5.decision}`);
   console.log(`   Reason: ${r5.reason}\n`);
 
+  // Scenario 6: Verifiable ProofRecords — signed, hash-chained, independently checkable
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("Demo complete. All scenarios evaluated locally.");
-  console.log("For the full test suite (12 cases): npm test");
+  console.log("Scenario 6: Verifiable ProofRecords (signed decision ledger)");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+  // Operator generates their own signing key (local tier = you hold the key).
+  const signer = generateSigner();
+  const provenGuard = new VaultProofGuard({
+    agentId: "demo-agent-signed",
+    profile,
+    localOnly: true,
+    signer, // <-- turning this on makes every decision a signed, chained record
+    onHold: async () => false,
+  });
+
+  // Run a few decisions; each appends a signed record to the in-memory ledger.
+  await provenGuard.verify({ action: "token_transfer", to: "0xAllowedAddress1".toLowerCase(), amountUsd: 40, chain: "base-mainnet" });
+  await provenGuard.verify({ action: "token_transfer", to: "0xUNKNOWNaddress".toLowerCase(), amountUsd: 30, chain: "base-mainnet" });
+  await provenGuard.verify({ action: "token_transfer", to: "0xAllowedAddress1".toLowerCase(), amountUsd: 60, chain: "base-mainnet" });
+
+  const records = provenGuard.proofRecords;
+  console.log(`   Produced ${records.length} signed, hash-chained ProofRecords.`);
+
+  // A third party verifies OFFLINE using only the public key — zero trust in RF.
+  const publicKeyPem = provenGuard.proofPublicKeyPem!;
+  const clean = verifyLedgerWithPublicKey(records, publicKeyPem);
+  console.log(`   Independent offline verification: ${clean.ok ? "✅ OK" : "❌ FAILED"} (${records.length} records)`);
+
+  // Now tamper: flip a DENY into an ALLOW in the stored record and re-verify.
+  const tampered = records.map((r) => JSON.parse(JSON.stringify(r)));
+  const denyIdx = tampered.findIndex((r) => coreOf(r).decision === "DENY");
+  if (denyIdx >= 0) {
+    tampered[denyIdx].decision = "ALLOW";
+    const check = verifyLedgerWithPublicKey(tampered, publicKeyPem);
+    console.log(`   After flipping a DENY→ALLOW: ${check.ok ? "not caught ⚠️" : "❌ tamper DETECTED"} — ${check.summary}`);
+  }
+  console.log(`   Verify any saved ledger from the CLI:  npm run verify -- <ledger.jsonl> <publicKey.pem>\n`);
+
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("Demo complete. Scenarios 1–5 evaluated locally; Scenario 6 produced");
+  console.log("and independently verified a tamper-evident ProofRecord ledger.");
+  console.log("Full test suite (25 cases): npm test   |   Spec: PROOFRECORD.md");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 }
 

@@ -64,3 +64,51 @@ PASS  | expected HOLD  got HOLD  | Fail-closed: hosted gate unreachable -> HOLD 
 
 12/12 passed
 ```
+
+## ProofRecord tamper-evidence suite
+
+The verifiable-ledger feature ships with its own reproducible suite. It builds a
+real signed, hash-chained ledger from live guard runs, then attempts twelve
+distinct tampering attacks — each must be caught by the standalone offline
+verifier with **zero trust in RF servers**.
+
+```bash
+npm run build
+npm test          # runs the drain suite AND the proof suite (25 cases total)
+```
+
+- Captured: 2026-07-17 22:47 UTC
+- Runtime: Node v22.14.0, tsx
+- Source of truth: [`src/proofrecord.ts`](./src/proofrecord.ts), [`src/verify-ledger.ts`](./src/verify-ledger.ts)
+
+**What this proves:** any edit, deletion, reorder, duplication, or signature
+forgery on a ProofRecord ledger is detected by the bundled verifier without
+contacting RF. **What it does not prove:** *whose* key signed (see
+[THREAT_MODEL.md](./THREAT_MODEL.md) item 8 — key-to-identity binding is the
+hosted-tier trust anchor).
+
+### Verbatim output
+
+```
+=== VaultProof — ProofRecord tamper-evidence suite ===
+
+[VaultProof] ALLOW | token_transfer → 0xaaa | $20 | All local checks passed | PR-5AE56097DFB4268E
+[VaultProof] DENY | token_transfer → 0xbad | $20 | Destination 0xbad not on allowlist | PR-258EE8FE8A437FF6
+--------------------------------------------------------------------------------
+PASS  | expected verifies OK      | Untampered ledger of 4 records verifies OK
+PASS  | expected tamper detected  | Altered DECISION (ALLOW→DENY) is detected
+PASS  | expected tamper detected  | Altered AMOUNT is detected
+PASS  | expected tamper detected  | Altered REASON is detected
+PASS  | expected tamper detected  | Altered calldata digest is detected
+PASS  | expected tamper detected  | DELETED middle record is detected (chain break / seq gap)
+PASS  | expected tamper detected  | REORDERED records are detected
+PASS  | expected tamper detected  | DUPLICATED/inserted record is detected
+PASS  | expected tamper detected  | FORGED signature (random bytes) is detected
+PASS  | expected tamper detected  | Tamper + recomputed hashes but NO re-sign is detected (sig fails)
+PASS  | expected tamper detected  | Verification with the WRONG public key fails
+PASS  | expected tamper detected  | Tampered GENESIS prev is detected
+PASS  | expected verifies OK      | End-to-end: real guard run produces an independently verifiable ledger
+--------------------------------------------------------------------------------
+
+13/13 passed
+```

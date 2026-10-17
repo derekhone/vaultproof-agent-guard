@@ -8,6 +8,13 @@
 
 export type Decision = "ALLOW" | "HOLD" | "DENY";
 
+/**
+ * Version of the decision logic in this file. Bound into every ProofRecord so a
+ * record can never be silently re-interpreted under different rules. Bump this
+ * whenever the semantics of evaluatePolicy() change.
+ */
+export const POLICY_VERSION = "vaultproof.policy/1.0.0";
+
 export interface ProposedTx {
   action:
     | "token_transfer"

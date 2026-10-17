@@ -1,9 +1,12 @@
 {
   "name": "vaultproof-agent-guard",
-  "version": "0.2.0",
-  "description": "Non-custodial pre-execution wallet guard for AI agents. Spend caps, allowlists, drain-vector blocking, human HOLD approval. ALLOW / HOLD / DENY before anything signs.",
+  "version": "0.3.0",
+  "description": "Non-custodial pre-execution wallet guard for AI agents. Spend caps, allowlists, drain-vector blocking, human HOLD approval, and independently verifiable signed ProofRecords. ALLOW / HOLD / DENY before anything signs.",
   "main": "dist/guard.js",
   "types": "dist/guard.d.ts",
+  "bin": {
+    "vaultproof-verify": "bin/vaultproof-verify.mjs"
+  },
   "exports": {
     ".": {
       "import": "./dist/guard.js",
@@ -14,10 +17,31 @@
       "import": "./dist/telegram.js",
       "require": "./dist/telegram.js",
       "types": "./dist/telegram.d.ts"
+    },
+    "./proofrecord": {
+      "import": "./dist/proofrecord.js",
+      "require": "./dist/proofrecord.js",
+      "types": "./dist/proofrecord.d.ts"
+    },
+    "./ledger": {
+      "import": "./dist/ledger.js",
+      "require": "./dist/ledger.js",
+      "types": "./dist/ledger.d.ts"
+    },
+    "./verify-ledger": {
+      "import": "./dist/verify-ledger.js",
+      "require": "./dist/verify-ledger.js",
+      "types": "./dist/verify-ledger.d.ts"
+    },
+    "./keys": {
+      "import": "./dist/keys.js",
+      "require": "./dist/keys.js",
+      "types": "./dist/keys.d.ts"
     }
   },
   "files": [
     "dist/",
+    "bin/",
     "profiles/",
     "examples/",
     "src/",
@@ -29,7 +53,10 @@
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build",
     "example": "tsx examples/agentkit-transfer.ts",
-    "test": "tsx tests/drain-attacks.test.ts",
+    "test": "npm run test:drain && npm run test:proof",
+    "test:drain": "tsx tests/drain-attacks.test.ts",
+    "test:proof": "tsx tests/proofrecord.test.ts",
+    "verify": "node bin/vaultproof-verify.mjs",
     "prepublishOnly": "npm run rebuild"
   },
   "keywords": [
